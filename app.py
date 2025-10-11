@@ -10,13 +10,16 @@ load_dotenv()
 
 app = Flask(__name__)
 
-# --- 2. Initialize the Gemini client ---
+
+
+TEMPORARY_GEMINI_KEY = "AIzaSyA0DA0yjJRTT4Zx1VBgfIygkbE5E7n4z1g" 
+
 try:
-    # Client will automatically look for the GEMINI_API_KEY from os.getenv()
-    client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
+    # Use the temporary key directly for the instructor
+    client = genai.Client(api_key=TEMPORARY_GEMINI_KEY) 
 except Exception as e:
-    # Error handling for client initialization
-    print(f"ERROR: Failed to initialize Gemini Client. Check API key and internet connection. Details: {e}")
+    # Error handling remains the same
+    print(f"ERROR: Failed to initialize Gemini Client. Details: {e}")
     client = None
 
 # --- 3. Home Route (Loads the HTML Frontend) ---
