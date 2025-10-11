@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple AI Study Buddy</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>🧠 AI Study Buddy</h1>
+        <p>Paste your notes or a complex topic below and choose an action.</p>
+
+        <textarea id="study-input" placeholder="Paste your study material here..."></textarea>
+        
+        <div class="actions">
+            <button id="explain-btn" data-action="explain">Explain Simply</button>
+            <button id="summarize-btn" data-action="summarize">Summarize Notes</button>
+            <button id="quiz-btn" data-action="quiz">Generate Quiz</button>
+        </div>
+        
+        <div id="output-area">
+            <h2>Results:</h2>
+            <div id="loading" class="hidden">Processing... Please wait.</div>
+            <pre id="ai-response"></pre>
+            <div id="quiz-display"></div>
+        </div>
+    </div>
+
+    <script>
+        document.querySelectorAll('.actions button').forEach(button => {
+            button.addEventListener('click', async (e) => {
+                const action = e.target.getAttribute('data-action');
+                const text = document.getElementById('study-input').value;
+                const loading = document.getElementById('loading');
+                const aiResponse = document.getElementById('ai-response');
+                const quizDisplay = document.getElementById('quiz-display');
+                
+                if (text.length < 50) {
+                    alert("Please provide at least a few sentences of text.");
+                    return;
+                }
+
+                loading.classList.remove('hidden');
+                aiResponse.textContent = '';
+                quizDisplay.innerHTML = '';
+                
+                try {
+                    const response = await fetch('/api/studybuddy', { 
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ action: action, content: text })
+                    });
+
+                    if (!response.ok) {
+                        const error = await response.json();
+                        throw new Error(error.error || 'Request failed.');
+                    }
+
+                    const data = await response.json(); // Data from Flask is always JSON
+                    
+                    if (action === 'quiz') {
+                        // The Flask route returns the raw JSON string for quizzes
+                        const quizData = JSON.parse(data.result); 
+                        formatQuiz(quizData.quiz, quizDisplay);
+                        aiResponse.classList.add('hidden'); // Hide the <pre> tag
+                    } else {
+                        aiResponse.textContent = data.result;
+                        aiResponse.classList.remove('hidden'); // Show the <pre> tag
+                    }
+
+                } catch (error) {
+                    aiResponse.textContent = `Error: ${error.message}`;
+                    aiResponse.classList.remove('hidden');
+                } finally {
+                    loading.classList.add('hidden');
+                }
+            });
+        });
+
+        // Function to nicely format the JSON quiz data
+        function formatQuiz(quizArray, element) {
+            let html = '<h3>Generated Quiz:</h3><ol>';
+            quizArray.forEach((q, index) => {
+                html += `<li><h4>${q.question}</h4>`;
+                html += '<ul class="options">';
+                for (const [key, value] of Object.entries(q.options)) {
+                    html += `<li><strong>${key}:</strong> ${value} <span class="answer-key hidden"> (Correct: ${q.correct_answer})</span></li>`;
+                }
+                html += '</ul></li>';
+            });
+            html += '</ol>';
+            html += '<button onclick="toggleAnswers()">Show Answers</button>';
+            element.innerHTML = html;
+        }
+
+        function toggleAnswers() {
+            document.querySelectorAll('.answer-key').forEach(el => {
+                el.classList.toggle('hidden');
+            });
+        }
+    </script>
+</body>
+</html>
