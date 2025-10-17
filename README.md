@@ -59,12 +59,12 @@ Open your web browser and navigate to the local address:
 http://127.0.0.1:5000
 
 AI-STUDY-BUDDY/
-├── app.py              # Flask backend, AI prompt logic, and temporary API key
-├── .gitignore          # Excludes the development environment (.venv)
-├── static/
-│   └── style.css       # Basic styling for the frontend
-└── templates/
-    └── index.html      # The frontend HTML interface
-
+-app.py
+    .gitignore
+-static
+    style.css
+-templates
+    index.html
+    
 👤 Author-
 Ishan Pathak
